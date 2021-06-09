@@ -1,0 +1,418 @@
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
+<canvas id="myChart" style="height:10%; width:10%;"></canvas>
+
+<div>
+  <input type="file" id="file-uploader" accept=".txt, .xls, .xlsx" style="margin-left:20px;margin-bottom:20px;">
+  <button onclick="Fload(document.getElementById('file-uploader'))">Считать файл</button>
+  <input type="button" value="Поставить точки" onclick="adddata()">
+  <button onclick="Obrobotat()">Обработать автоматически</button>
+  <button onclick="Prognoz()">Добавить прогноз</button>
+</div>
+<div><p></p></div>
+<div>
+<p align="center">Таблица данных полученных экспериментально</p>
+<table style="margin-left:20px;">
+<tr>
+<th><div>
+<button onclick="Up()" style="position:relative;"><</button>
+<button onclick="Dob()" style="position:relative;">></button>
+</div></th>
+<th>
+<table><tr><th>Y</th></tr><tr><th>X</th></tr></table>
+</th>
+<th>
+ <table border= 2 pt id="extab" >
+<tr id="del1"><th><input type="text" size="4" id="pop"></th><th><input type="text" size="4" id="pop"></th></tr>
+<tr id="del2"><th><input type="text" size="4" value=0 id="days"></th><th><input type="text" size="4" value=1 id="days"></th></tr>
+</table></th></tr>
+</table>
+</div>
+<div><p align="center">Настройки</p></div>
+<table style="margin-left:20px;" id="results">
+<tr>
+<th></th><th>Экспоненциальная</th><th>Линейная</th><th>Замедления</th></tr>
+<tr align="center">
+<th><p>Начало участка функции</p></th><th><input type="number" min="0" size="3" id="beginExp" value="0"></th>
+									<th><input type="number" min="0"  size="3" id="beginLine" value="0"></th>
+										<th><input type="number" min="0"  size="3" id="beginSlow" value="0"></th>										
+										</tr>
+<tr align="center">
+<th><p>Длина участка функции</p></th><th><input type="number" min="0" size="3" id="sizeExp" value="0"></th>
+										<th><input type="number" min="0" size="3" id="sizeLine" value="0"></th>
+												<th><input type="number" min="0" size="3" id="sizeSlow" value="0"></th>
+												<th align="center"><button onclick="Perechitat()">Пересчитать вручную</button></th>
+												</tr>
+<tr>
+<th>Наличие фазы</th>
+<th><label><input type="checkbox" checked id="Check1"/> Есть</label></th>
+<th><label><input type="checkbox" checked id="Check2"/> Есть</label></th>
+<th><label><input type="checkbox" checked id="Check3"/> Есть</label></th>
+</tr>
+</table>
+ 
+
+<div><p align="center">Результаты</p></div>
+<div><p align="center" id="theresults"></p></div>
+<div>
+<p align="center">Таблица данных полученных вычислениями</p>
+<table border= 2 pt style="margin-bottom:20px;" align="center">
+<tr><th>Фаза роста</th><th>Главный показатель</th></tr>
+<tr id="del3"><th>Логарифмическая</th></tr>
+<tr id="del4"><th>Линейная</th></tr>
+<tr id="del5"><th>Замедления</th></tr>
+<tr id="del6"><th>Стационарная</th></tr>
+</table>
+</div>
+<div align="right" style="margin-right:20px;margin-bottom:20px;"><b>Aвтор:</b> <i>Бородин Владислав Дмитриевич</i></div>
+<script>
+var canvas = document.getElementById('myChart');
+var data = {
+    labels: ["0", "1", "2", "3", "4", "5", "6"],
+    datasets: [
+        {	
+            label: "Показатели популяции микроводоросли",
+			fill: false,
+            lineTension: 0.1,
+            backgroundColor: "rgba(75,192,192,0.4)",
+            borderCapStyle: 'butt',
+            borderDash: [],
+            borderDashOffset: 0.0,
+            borderJoinStyle: 'miter',
+            pointBorderColor: "rgba(75,192,192,1)",
+            pointBackgroundColor: "#fff",
+            pointBorderWidth: 1,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: "rgba(75,192,192,1)",
+            pointHoverBorderColor: "rgba(220,220,220,1)",
+            pointHoverBorderWidth: 2,
+            pointRadius: 5,
+            pointHitRadius: 10,
+            data: [0],
+        },
+		{
+            label: "Экспоненциальная фаза",
+            fill: false,
+            borderColor: "rgba(00,00,192,1)",
+            data: [0],
+        },
+		{
+            label: "Линейная фаза",
+             fill: false,
+			 lineTension: 0.3,
+            borderColor: "rgba(50,50,50,1)",
+            data: [0],
+        },
+		{
+            label: "Фаза замедления роста",
+            fill: false,
+			lineTension: 0.3,
+            borderColor: "rgba(150,200,50,1)",
+            data: [0],
+        }
+    ]
+};
+
+function adddata(){
+	myLineChart.data.datasets[0].data = [];
+	myLineChart.data.labels = [];
+		var population = document.getElementById("del1").getElementsByTagName('input');
+		var days = document.getElementById("del2").getElementsByTagName('input');
+			for (var i = 0; i < days.length; i++) {myLineChart.data.labels[i]  = days[i].value;	}
+			for (var i = 0; i < population.length; i++) {myLineChart.data.datasets[0].data[i]  = population[i].value;	}
+	myLineChart.update();
+}
+var option = {
+		legend: {
+          display: true,
+          position: 'bottom',
+          labels: {
+            boxWidth: 80,
+            fontColor: 'rgb(60, 180, 100)'
+          }
+			}
+    }
+var myLineChart = Chart.Line(canvas,{	data:data,  options:option});
+
+
+function Dob(){//ДОБАВИТЬ ЯЧЕЙКУ ТАБЛИЦЫ И УБАВИТЬ ВНИЗУ ФУНКЦИЯ
+var row = document.getElementById("del1");
+row.insertCell(-1).innerHTML = '<input type="text" size="4" id="pop">';
+var row = document.getElementById("del2");
+row.insertCell(-1).innerHTML = '<input type="text" size="4" id="days">'; 
+}
+function Up(){
+ var row = document.getElementById("del1");
+  row.deleteCell(-1);
+  var row = document.getElementById("del2");
+  row.deleteCell(-1);
+}
+
+function Fload(object){
+//считывание файла и создание таблицы с инпутами и значениями
+var file = object.files[0]
+  var reader = new FileReader()
+  reader.onload = function() {
+    	var mas = reader.result.replace(/,/g,".");
+	var mas= mas.split("	");
+	var i=0;
+	document.getElementById('del2').innerHTML="";
+	var tbl = document.getElementById('extab');
+	var oRow = tbl.tBodies[0].rows[1];
+	while(i<Math.round(0.5*mas.length)){
+	oRow.insertCell(-1).innerHTML = '<input type="text" size="4" value='+mas[i]+'>';
+	i=i+1;
+	}
+	document.getElementById('del1').innerHTML=""; 
+	var oRow = tbl.tBodies[0].rows[0];
+	while(i<mas.length){
+		oRow.insertCell(-1).innerHTML = '<input type="text" size="4" value='+mas[i]+'>';
+		i=i+1;
+		}
+	}
+	reader.readAsText(file)
+	// прорисовка загруженного
+	myLineChart.data.datasets[0].data = [];
+	myLineChart.data.datasets[1].data = [];
+	myLineChart.data.datasets[2].data = [];
+	myLineChart.data.datasets[3].data = [];
+	myLineChart.data.labels = [];
+		var population = document.getElementById("del1").getElementsByTagName('input');
+		var days = document.getElementById("del2").getElementsByTagName('input');
+			for (var i = 0; i < days.length; i++) {myLineChart.data.labels[i]  = days[i].value;	}
+			for (var i = 0; i < population.length; i++) { myLineChart.data.datasets[0].data[i]  = population[i].value;	}
+	myLineChart.update();
+}
+
+
+
+function Obrobotat(){
+var population = document.getElementById("del1").getElementsByTagName('input');
+var days = document.getElementById("del2").getElementsByTagName('input');
+document.getElementById("del3").innerHTML="";
+document.getElementById("del4").innerHTML="";
+document.getElementById("del5").innerHTML="";
+document.getElementById("del6").innerHTML="";
+document.getElementById("theresults").innerHTML="";
+var a1,b1,a2,b2,a3,b3;var Count=0;
+Count=1*document.getElementById("Check1").checked;
+Count+=1*document.getElementById("Check2").checked;
+Count+=1*document.getElementById("Check3").checked;
+myLineChart.data.datasets[1].data=[];myLineChart.data.datasets[2].data=[];myLineChart.data.datasets[3].data=[];			
+if (Count==0){return alert("Не выбрана ни одна фаза для поиска!");}
+if (Count==1) {a1=0;b1=days.length-1;
+				if (document.getElementById("Check1").checked>0){ExpApro(a1,b1);}
+				if (document.getElementById("Check2").checked>0){LineApro(a1,b1);}
+				if (document.getElementById("Check3").checked>0){SlowApro(a1,b1);}
+				}
+if (Count==2){a1=0;b1=Math.round(days.length*0.5)-1;a2=b1;b2=days.length-1;
+				if (document.getElementById("Check1").checked>0){ExpApro(a1,b1);LineApro(a2,b2);}
+				if (document.getElementById("Check3").checked>0){LineApro(a1,b1);SlowApro(a2,b2);}
+				}
+if (Count==3){
+a1=0;
+b1=1*Math.round(days.length*0.33);
+a2=1*Math.round(days.length*0.33)-1;
+b2=a2+Math.round(days.length*0.33)+1;
+a3=Math.round(days.length*0.66)-1;
+var maxI=1;var maxY=0;
+for (var i = 0; i < days.length-1; i++) {if(maxY<1*population[i].value){maxY=1*population[i].value;maxI=1*days[i].value;}	}
+if (days[days.length-1].value!=maxI){a3=maxI-2;b2=maxI-1;}
+b3=(days.length);
+if (document.getElementById("Check1").checked>0){ExpApro(a1,b1);}
+if (document.getElementById("Check2").checked>0){LineApro(a2,b2);}
+if (document.getElementById("Check3").checked>0){SlowApro(a3,b3);}
+				}
+}
+function ExpApro(n,n1){
+		//if (n>n1){return }
+		var population = document.getElementById("del1").getElementsByTagName('input');
+		var days = document.getElementById("del2").getElementsByTagName('input');
+		var sumx =0;var sumy=0.00;var sumx2=0.00;var sumxy=0.00;
+		for (var i = n; i < n1; i++) {
+					sumx=sumx+(1*days[i].value);
+					sumy=sumy+Math.log(1*population[i].value);
+					sumx2=sumx2+Math.pow(1*days[i].value,2);
+					sumxy=sumxy+(1*days[i].value)*Math.log(1*population[i].value);
+					}
+		var lna=(sumy*sumx2-sumxy*sumx)/((n1-n)*sumx2-sumx*sumx);a=Math.pow(Math.E,lna);
+		var b=((n1-n)*sumxy-sumy*sumx)/((n1-n)*sumx2-sumx*sumx);
+		myLineChart.data.datasets[1].data=[];
+		for (var i = n; i < n1; i++) {
+		myLineChart.data.datasets[1].data[i] = a*Math.pow(Math.E,b*1*days[i].value);
+		}
+		myLineChart.update();
+		document.getElementById("beginExp").value=n;document.getElementById("sizeExp").max=days.length;document.getElementById("sizeExp").value=n1-n;
+		document.getElementById("theresults").innerHTML+="<div> зависимость имеет формулу Y="+a.toFixed(2)+"*e^(x*"+b.toFixed(3)+"), фаза роста длится с "+n+" по "+n1+" пробы </div>";
+		var Ur=b
+		var Plot=a*Math.pow(Math.E,sumy/(n1-n));
+		var Prod=Plot*Ur;
+		//document.getElementById("del3").innerHTML = "<th>Логарифмическая</th><th>"+Ur.toFixed(4)+"</th><th>"+Prod.toFixed(4)+"</th><th>"+Plot.toFixed(4)+"</th>";
+		document.getElementById("del3").innerHTML = "<th>Логарифмическая</th><th>Um="+b.toFixed(4)+"</th>";
+		Ftype="Exp";
+		warp=Aproof(a,b,Ftype,n,n1);
+		return warp;
+		}
+function LineApro(n,n1){
+		//if (n>n1){return }
+		var population = document.getElementById("del1").getElementsByTagName('input');
+		var days = document.getElementById("del2").getElementsByTagName('input');
+		var sumx =0;var sumy=0.00;var sumx2=0.00;var sumxy=0.00;
+		for (var i = n; i < n1; i++) {
+					sumx=sumx+1*days[i].value;
+					sumy=sumy+1*population[i].value;
+					sumx2=sumx2+1*days[i].value*1*days[i].value;
+					sumxy=sumxy+1*days[i].value*1*population[i].value;
+					}
+		var a=(sumy*sumx2-sumxy*sumx)/((n1-n)*sumx2-sumx*sumx);
+		var b=((n1-n)*sumxy-sumy*sumx)/((n1-n)*sumx2-sumx*sumx);
+		myLineChart.data.datasets[2].data=[];
+		for (var i = n; i < n1; i++) {
+		myLineChart.data.datasets[2].data[i] = b*1*days[i].value+a;
+		}
+		myLineChart.update();
+		document.getElementById("beginLine").value=n;document.getElementById("sizeLine").max=days.length;document.getElementById("sizeLine").value=n1-n;
+		document.getElementById("theresults").innerHTML+="<div> зависимость имеет формулу Y="+b.toFixed(2)+"*x+("+a.toFixed(3)+"), фаза роста длится с "+n+" по "+n1+" пробы </div>";
+		var Plot=Math.abs(1*population[n].value+b*(n1-n));
+		var Speed=b/Plot;
+		//document.getElementById("del4").innerHTML = "<th>Линейная</th><th>"+Speed.toFixed(4)+"</th><th>"+b.toFixed(4)+"</th><th>"+Plot.toFixed(4)+"</th>";
+		document.getElementById("del4").innerHTML = "<th>Линейная</th><th>Pm="+b.toFixed(4)+"</th>";
+		Ftype="Line";
+		warp=Aproof(a,b,Ftype,n,n1);
+		return warp;
+		}
+function SlowApro(n,n1){
+		if (n==0){n=1;}
+		var population = document.getElementById("del1").getElementsByTagName('input');
+		var days = document.getElementById("del2").getElementsByTagName('input');
+		var sumx =0;var sumy=0.00;var sumx2=0.00;var sumxy=0.00;var maxY=0;var maxI=0;var Ysred2=0;
+		for (var i = n-1; i < n1; i++) {if(maxY<1*population[i].value){maxY=1*population[i].value;maxI=1*days[i].value;}	}
+		for (var i = n; i < n1; i++) {Ysred2+=population[i].value/(n1-n);}
+		for (var i = n; i < n1; i++) {
+					sumx=sumx+maxI+1*days[i].value;
+					sumy=sumy+Math.log(maxY)+Math.log(1*population[i].value);
+					sumx2=sumx2+Math.pow(1*days[i].value,2)+Math.pow(maxI,2);
+					sumxy=sumxy+(maxI+1*days[i].value)*(Math.log(1*population[i].value))*Math.log(maxY);
+					//sumx=sumx+1*days[i].value;
+					//sumy=sumy+Math.log(1*population[i].value);
+					//sumx2=sumx2+Math.pow(1*days[i].value,2);
+					//sumxy=sumxy+(Math.log(1*population[i].value))*Math.log(maxY);
+					}
+		var b=((n1-n)*sumxy-sumx*sumy)/((n1-n)*sumx2-sumx*sumx);
+		var a=(1/(n1-n))*sumy-(b/(n1-n))*sumx;
+		myLineChart.data.datasets[3].data=[];		
+		for (var i = n; i < n1; i++) {
+		myLineChart.data.datasets[3].data[i] = maxY-(maxY-Ysred2)*Math.pow(Math.E,b*(1*days[i].value-a+3));
+		}
+		myLineChart.update();
+	document.getElementById("beginSlow").value=n;document.getElementById("sizeSlow").max=days.length;document.getElementById("sizeSlow").value=n1-n;
+	document.getElementById("theresults").innerHTML+="<div> зависимость имеет формулу Y="+maxY+"-"+(maxY-Ysred2)+"e^("+b.toFixed(3)+"*(x"+(-a+3).toFixed(3)+")), фаза роста длится с "+n+" по "+n1+" пробы </div>";
+	var Plot=maxY-(maxY-population[n].value)*Math.pow(Math.E,-b*(1*days[n].value-maxI-1));
+	var Speed=b*(1*population[n1-1].value/Plot-1);
+	var Sp=Speed*Plot;
+	//document.getElementById("del5").innerHTML = "<th>Замедления</th><th>"+-Speed.toFixed(4)+"</th><th>"+-Sp.toFixed(4)+"</th><th>"+Plot.toFixed(4)+"</th>";
+	document.getElementById("del5").innerHTML = "<th>Замедления</th><th>Ur="+b.toFixed(4)+"</th>";
+	document.getElementById("del6").innerHTML = "<th>Стационарная</th><th>Bm="+Ysred2.toFixed(4)+"</th>";
+	Ftype="Slow";
+	warp=Aproof(a,b,Ftype,n,n1);
+		return warp;
+		}
+		
+function Perechitat(){
+myLineChart.data.datasets[1].data=[];myLineChart.data.datasets[2].data=[];myLineChart.data.datasets[3].data=[];	
+document.getElementById("del3").innerHTML = "";
+document.getElementById("del4").innerHTML = "";
+document.getElementById("del5").innerHTML = "";
+document.getElementById("del6").innerHTML="";
+document.getElementById("theresults").innerHTML="";
+var n1=1*document.getElementById("beginExp").value;
+var n2=1*document.getElementById("sizeExp").value+1*document.getElementById("beginExp").value;
+var n3=1*document.getElementById("beginLine").value;
+var n4=1*document.getElementById("sizeLine").value+1*document.getElementById("beginLine").value;
+var n5=1*document.getElementById("beginSlow").value;
+var n6=1*document.getElementById("sizeSlow").value+1*document.getElementById("beginSlow").value;
+if (document.getElementById("Check1").checked>0){ExpApro(n1,n2);}
+if (document.getElementById("Check2").checked>0){LineApro(n3,n4);}
+if (document.getElementById("Check3").checked>0){SlowApro(n5,n6);}
+}
+function Aproof(a,b,Ftype,n,n1){
+		var population = document.getElementById("del1").getElementsByTagName('input');
+		var days = document.getElementById("del2").getElementsByTagName('input');
+		var SQADR=0;var Xsred=0; var Ysred=0;var R=0;
+		var Top=0;var Bot=0;var YY=0;
+		for (var i = n; i < n1; i++) {
+		  Xsred+=1*days[i].value;
+		}Xsred=Xsred/(n1-n);
+		for (var i = n; i < n1; i++) {
+		 Ysred+=1*population[i].value;
+		}Ysred=Ysred/(n1-n);
+
+	if (Ftype=="Exp") {
+		for (var i = n; i < n1; i++) {
+		  YY+=a*Math.pow(Math.E,b*1*days[i].value);}YY=YY/(n1-n);
+		for (var i = n; i < n1; i++) {
+			SQADR=a*Math.pow(Math.E,b*1*days[i].value);
+			Top+=Math.pow(1*population[i].value-SQADR,2);
+			Bot+=Math.pow(1*population[i].value-YY,2);
+			}	
+			R=1-Top/Bot;R=Math.pow(R,0.5)*100;
+		document.getElementById("theresults").innerHTML+="<div>Коэффициент корреляции экспоненты ="+R.toFixed(4)+"%</div>"
+	}
+	if (Ftype=="Line") {
+	for (var i = n; i < n1; i++) {
+		 YY+=Math.abs(b*1*days[i].value+a);}YY=YY/(n1-n);
+		for (var i = n; i < n1; i++) {
+			Top+=Math.pow((YY-Math.abs(b*1*days[i].value+a)),2);
+			Bot+=Math.pow(1*population[i].value-YY,2);
+			}	
+			R=Top/Bot;R=Math.pow(R,0.5)*100;	
+		document.getElementById("theresults").innerHTML+="<div>Коэффициент корреляции линии ="+R.toFixed(4)+"%</div>"
+	}
+	if (Ftype=="Slow") {
+	var maxY=0;var maxI=0;
+	for (var i = n; i < n1; i++) {if(maxY<1*population[i].value){maxY=1*population[i].value;maxI=1*days[i].value;}	}
+	for (var i = n; i < n1; i++) {
+		 YY+=a*Math.pow(Math.E,b*1*days[i].value);}
+		 YY=YY/(n1-n);
+		for (var i = n; i < n1; i++) {
+			SQADR=maxY-(maxY-population[n].value)*Math.pow(Math.E,-b*(1*days[i].value-maxI-1));
+			Top+=Math.pow(1*population[i].value-SQADR,2);
+			Bot+=Math.pow(1*population[i].value-YY,2);
+			}	
+			R=1-Top/Bot;R=Math.pow(R,0.5)*90;
+		document.getElementById("theresults").innerHTML+="<div>Коэффициент корреляции фазы замедления ="+R.toFixed(4)+"%</div>"
+	}
+return R;
+}
+function Prognoz(){
+var population = document.getElementById("del1").getElementsByTagName('input');
+var days = document.getElementById("del2").getElementsByTagName('input');
+if (days.length<3) {return}
+if (population.length<3) {return}
+if(days.length!=population.length){return}
+n=days.length-3; n1=days.length-1;
+adddata(); var sumx=0;var sumy=0;var sumx2=0;var sumxy=0;
+maxI=1;maxY=0;
+for (var i = n; i < n1; i++) {if(maxY<1*population[i].value){maxY=1*population[i].value;maxI=1*days[i].value;}	}
+					for (var i = n; i < n1; i++) {
+					sumx=sumx+maxI+1*days[i].value;
+					sumy=sumy+Math.log(maxY)+Math.log(1*population[i].value);
+					sumx2=sumx2+Math.pow(1*days[i].value,2)+Math.pow(maxI,2);
+					sumxy=sumxy+(maxI+1*days[i].value)*(Math.log(1*population[i].value))*Math.log(maxY);
+					}
+		var b=((n1-n)*sumxy-sumx*sumy)/((n1-n)*sumx2-sumx*sumx);
+		var a=(1/(n1-n))*sumy-(b/(n1-n))*sumx;
+		var Dro = 1*days[n1].value+1; var Pro = 37*Math.pow(Math.E,b*(1*days[n1].value-a));
+		myLineChart.data.datasets[0].data[Dro-1] = Pro.toFixed(2);
+		myLineChart.data.labels[Dro-1] = Dro;
+		myLineChart.update();
+		var row = document.getElementById("del1");
+		row.insertCell(-1).innerHTML = '<input type="text" size="4" value='+Pro.toFixed(4)+'>';
+		var row = document.getElementById("del2");
+		row.insertCell(-1).innerHTML = '<input type="text" size="4" value='+Dro+'>';
+		
+}
+
+		
+</script>
