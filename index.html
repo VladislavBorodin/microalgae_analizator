@@ -393,7 +393,7 @@ if (population.length<3) {return}
 if(days.length!=population.length){return}
 n=days.length-3; n1=days.length-1;
 adddata(); var sumx=0;var sumy=0;var sumx2=0;var sumxy=0;
-maxI=1;maxY=0;
+maxI=1;maxY=0;var Ysred=0;
 for (var i = n; i < n1; i++) {if(maxY<1*population[i].value){maxY=1*population[i].value;maxI=1*days[i].value;}	}
 					for (var i = n; i < n1; i++) {
 					sumx=sumx+maxI+1*days[i].value;
@@ -403,7 +403,7 @@ for (var i = n; i < n1; i++) {if(maxY<1*population[i].value){maxY=1*population[i
 					}
 		var b=((n1-n)*sumxy-sumx*sumy)/((n1-n)*sumx2-sumx*sumx);
 		var a=(1/(n1-n))*sumy-(b/(n1-n))*sumx;
-		var Dro = 1*days[n1].value+1; var Pro = 37*Math.pow(Math.E,b*(1*days[n1].value-a));
+		var Dro = 1*days[n1].value+1; var Pro = maxY*Math.pow(Math.E,b*(1*days[n1].value-a));
 		myLineChart.data.datasets[0].data[Dro-1] = Pro.toFixed(2);
 		myLineChart.data.labels[Dro-1] = Dro;
 		myLineChart.update();
